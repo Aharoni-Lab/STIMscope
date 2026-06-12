@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Architecture overview
+    url: https://github.com/Aharoni-Lab/STIMscope/blob/main/docs/IMPLEMENTATION_NOTES.md
+    about: Two-stack architecture, file tour, how to add a CS backend.
+  - name: Citation
+    url: https://github.com/Aharoni-Lab/STIMscope/blob/main/CITATION.cff
+    about: How to cite STIMscope / CRISPI in publications.

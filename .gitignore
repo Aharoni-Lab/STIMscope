@@ -1,0 +1,116 @@
+data/
+#   data/config/        ← tracked (operator-supplied calibration, ROIs, mask_map)
+#   data/assets/        ← tracked (generated calibration outputs: homography etc.)
+#   data/runs/<TS>/     ← gitignored (per-experiment outputs; small but timestamped)
+#   data/recordings/<TS>/ ← gitignored (per-experiment heavy data; 100s of MB)
+#   data/cache/         ← gitignored (transient compute)
+# Subdirs created by core.paths.ensure_layout() at runtime (root-only writes
+# because docker runs as root; reclaim with `sudo chown -R $USER:$USER data/`).
+!data/config/
+!data/assets/
+*.tiff
+*.npz
+*.npy
+# ...but golden-output fixtures committed for regression tests are tracked
+!tests/fixtures/golden/**/*.npz
+!tests/fixtures/golden/**/*.npy
+__pycache__/
+*.pyc
+.env
+# pytest-cov artifacts
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Binaries & packages
+*.deb
+*.rpm
+*.so
+*.bin
+STIMscope/ZMQ_sender_mask/projector
+
+# Third-party datasheets (redistribution restricted — download locally)
+docs/hardware/*.pdf
+
+# Media
+*.mp4
+*.avi
+*.mov
+
+# Secrets & credentials
+*.pem
+*.key
+*.p12
+.env.*
+credentials*
+secrets*
+id_rsa*
+id_ed25519*
+
+# Claude Code memory (per-developer)
+setup-claude-memory.sh
+
+# IDE & OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Generated mask map
+mask_map.csv
+
+# Runtime-drift state files (saved by the GUI on every run; not source)
+
+# Orphan root-owned data residue from before docker volume mount was fixed.
+# Canonical data dir is the top-level data/ (mounted by docker-compose).
+# To reclaim disk: `sudo rm -rf STIMscope/STIMViewer_CRISPI/data/`
+STIMscope/STIMViewer_CRISPI/data/
+
+# Saved_Media directories — large operator-side captures (sl_cap_*.png,
+# recording snapshots). historical convention; will be redirected to
+# data/recordings/<TS>/. Until then, manual cleanup with:
+#   rm -rf STIMscope/STIMViewer_CRISPI/Saved_Media/
+STIMscope/STIMViewer_CRISPI/Saved_Media/
+
+# Mutation testing cache (mutmut cache)
+.mutmut-cache
+mutants/
+
+# Stray test / scratch files
+STIMscope/STIMViewer_CRISPI/test.txt
+**/test.txt
+**/scratch.py
+**/scratch.txt
+
+# Bytecode pyc fragments left around from interrupted compiles
+*.pyc.[0-9]*
+__pycache__/.[0-9]*
+
+# Operator-side workspace & logs
+backups/
+benchmarks/
+logs/
+*.log
+*.code-workspace
+
+# Recording outputs (uppercase + 3-letter extension; *.tiff already above)
+*.tif
+*.TIF
+*.TIFF
+
+# IDS Peak SDK — user drops the SDK .deb at the repo root; see IDS-PEAK-SDK.md
+ids-peak_*.deb
+
+# Internal docs — keep them in the working tree for reference but never commit
+/docs/PROJECT_EVIDENCE_LEDGER.md
+/docs/CS_INFERENCE_STATUS_AND_ROADMAP.md
+/docs/CODEBASE_ENGINEERING_ACCOUNT.md
+/docs/build_figures.py
+
+# Calibration outputs are machine-specific — regenerated on first calibration
+STIMscope/STIMViewer_CRISPI/Assets/Generated/
+
+# Operator demo captures at repo root
+/Saved_Media/

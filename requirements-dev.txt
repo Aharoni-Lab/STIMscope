@@ -1,0 +1,33 @@
+# Phase A audit development dependencies.
+# Install on the host (or in the container) for running tests and audit tooling.
+#   pip install -r requirements-dev.txt
+
+# Test runner + coverage
+# GHSA-6w46-j5rx-g56g (pytest tmpdir handling) is open; fix is scheduled
+# for pytest 9.0.3 which is not yet released on PyPI. Bump when available.
+pytest~=8.0
+pytest-cov~=4.1
+pytest-xdist~=3.5         # parallel test execution
+
+# Property-based testing for algorithm characterization
+hypothesis~=6.98
+
+# Numerical comparison helpers
+numpy~=1.24
+scipy~=1.11
+
+# Security / supply-chain scanning
+bandit~=1.7              # static security analysis for Python
+pip-audit~=2.7           # known-vulnerability scan for installed deps
+
+# Code quality
+ruff~=0.4                # linter (matches host black + isort + flake8 in one)
+mypy~=1.10               # static type checking
+
+# Dependency / call-graph analysis (dependency / call-graph analysis)
+pydeps~=1.12             # import-graph visualization + transitive caller analysis
+
+# Mutation testing (DoD item 16 — added )
+# Used to measure test-suite quality on pure-numeric L1 modules.
+# Run via `make mutation-l1`; gates at ≥80% kill rate per L1 module.
+mutmut~=2.4

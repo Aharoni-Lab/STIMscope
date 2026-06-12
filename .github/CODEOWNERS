@@ -1,0 +1,31 @@
+# CODEOWNERS — GitHub auto-requests these owners as reviewers when
+# a PR touches matching paths. Branch protection (requires GitHub Pro
+# for private repos) can additionally REQUIRE their approval; without
+# protection this is advisory only.
+#
+# Syntax: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Catch-all — owner reviews any change that no later rule overrides.
+*                               @wimaan3
+
+# Core utilities + scaffolding for the preprint's future closed-loop
+# inference extension point (preprint Discussion).
+/STIMscope/STIMViewer_CRISPI/CS/core/                                @wimaan3
+
+# CI / build / release tooling.
+/.github/                       @wimaan3
+/Dockerfile                     @wimaan3
+/docker-compose.yml             @wimaan3
+/build.sh                       @wimaan3
+/entrypoint.sh                  @wimaan3
+/Makefile                       @wimaan3
+
+# Hardware drivers — review with hardware in hand if possible.
+/STIMscope/ZMQ_sender_mask/     @wimaan3
+/STIMscope/STIMViewer_CRISPI/camera.py                              @wimaan3
+/STIMscope/STIMViewer_CRISPI/calibration.py                         @wimaan3
+
+# Licensing + citation — any change here is consequential.
+/LICENSE                        @wimaan3
+/NOTICE                         @wimaan3
+/CITATION.cff                   @wimaan3

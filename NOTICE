@@ -1,0 +1,32 @@
+STIMscope
+=========
+
+STIMscope = Spatio-Temporal Illumination Microscope (Aharoni Lab, UCLA
+Department of Neurology). This containerized distribution is maintained
+internally as CRISPI (Closed-Loop Real-Time Imaging and Stimulation
+Pipeline Infrastructure).
+
+This product is licensed under the GNU General Public License v3.0
+(see the LICENSE file at the repository root for the full text).
+
+------------------------------------------------------------------------
+Upstream hardware + GUI platform
+------------------------------------------------------------------------
+STIMscope, Aharoni Lab (UCLA Department of Neurology).
+https://github.com/Aharoni-Lab/STIMscope
+Licensed under GPL-3.0. Original LICENSE preserved at STIMscope/LICENSE.
+
+------------------------------------------------------------------------
+Third-party libraries
+------------------------------------------------------------------------
+Listed in requirements.txt (pinned) and pulled at Docker image build
+time. Each dependency is governed by its own license, which can be
+inspected via `pip show <package>` inside the container.
+
+The platform also requires the IDS Peak SDK (proprietary, IDS Imaging
+Development Systems GmbH) at runtime for hardware mode; the .deb
+installer is NOT redistributed and must be downloaded separately by
+the operator (see README for instructions).
+
+The DLPC3479 / DLP4710 DMD controller protocol used by the projector
+engine follows the public TI DLPU081A datasheet.

@@ -1,0 +1,97 @@
+name: Bug report
+description: Report a defect in the STIMscope / CRISPI platform.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please include enough detail that someone
+        without your hardware can reason about the failure.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One paragraph describing what went wrong and what you expected.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Exact commands or GUI clicks. Include CLI flags / config values.
+      placeholder: |
+        1. `sudo -E docker-compose up gui`
+        2. Click "Calibrate"
+        3. Observe …
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior + logs
+      description: |
+        Paste any traceback / error message. For runtime failures,
+        attach `/tmp/crispi-latest.log` or relevant excerpt.
+      render: shell
+    validations:
+      required: true
+
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Which layer
+      description: Where in the stack did the failure happen.
+      options:
+        - "GUI (STIMViewer_CRISPI)"
+        - "Camera (IDS Peak)"
+        - "Projector / DMD / I²C"
+        - "Calibration"
+        - "Recording / TIFF / mp4"
+        - "Live trace extraction"
+        - "Docker / build"
+        - "Tests / CI"
+        - "Documentation"
+        - "Other / not sure"
+    validations:
+      required: true
+
+  - type: input
+    id: jetpack
+    attributes:
+      label: JetPack version
+      placeholder: "JP6 (L4T R36.x) or JP5 (L4T R35.x)"
+
+  - type: input
+    id: jetson
+    attributes:
+      label: Jetson model
+      placeholder: "AGX Orin / Xavier NX / Orin Nano / …"
+
+  - type: input
+    id: commit
+    attributes:
+      label: Commit SHA
+      description: Output of `git rev-parse HEAD` in the repo.
+
+  - type: dropdown
+    id: hardware
+    attributes:
+      label: Hardware mode
+      options:
+        - "Simulation only (no hardware)"
+        - "Camera only"
+        - "Camera + projector"
+        - "Full hardware loop (camera + projector + LEDs)"
+    validations:
+      required: true

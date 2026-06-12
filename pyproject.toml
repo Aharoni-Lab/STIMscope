@@ -1,0 +1,50 @@
+# Project configuration.
+# Pytest config lives here so `pytest` from repo root just works.
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = [
+    "tests",
+]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-ra",                       # short summary for all non-passing outcomes
+    "--strict-markers",          # unknown @pytest.mark raises
+    "--strict-config",           # unknown config keys raise
+    "-p", "no:cacheprovider",    # no .pytest_cache litter in the tree
+    # test_hardware.py is a CLI tool whose functions are named `test_*` for
+    # argparse dispatch — not a pytest module. Skip it so the suite isn't
+    # polluted with "fixture 'args' not found" errors.
+]
+markers = [
+    "L1_algorithms: pure algorithm tests, no I/O, no hardware",
+    "L2_orchestration: config and orchestration tests, no hardware",
+    "L3_io: single-threaded I/O tests, may need mock hardware",
+    "L4_concurrency: multi-threaded orchestration tests, may need mock hardware",
+    "L5_ui: UI tests, require Qt (likely skipped headless)",
+    "slow: tests that take > 5 seconds",
+    "gpu: tests that require CUDA / CuPy",
+    "hardware: tests that require real hardware (camera, projector, GPIO)",
+    "golden: characterization tests asserting against committed reference output",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:napari.*",
+    "ignore::DeprecationWarning:pygame.*",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["STIMscope/STIMViewer_CRISPI/CS/core"]
+omit = [
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
