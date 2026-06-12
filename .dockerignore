@@ -1,0 +1,49 @@
+# Git metadata
+.git
+.gitignore
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Secrets and credentials
+.env
+.env.*
+*.pem
+*.key
+*.p12
+credentials*
+secrets*
+id_rsa*
+id_ed25519*
+
+# Claude Code / developer-local
+.claude/
+CLAUDE.md
+setup-claude-memory.sh
+setup-claude-settings.sh
+setup-remote-jetson.sh
+
+# Data outputs (mounted at runtime, not baked into image)
+data/
+
+# Media files
+*.mp4
+*.avi
+*.mov
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Temp files
+*.log
+*.tmp

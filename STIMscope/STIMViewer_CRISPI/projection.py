@@ -1,0 +1,166 @@
+
+from typing import Optional
+
+import cv2
+import numpy as np
+from PyQt5.QtCore import Qt, QRect
+import json
+import os
+from PyQt5.QtGui import QImage, QPixmap, QPalette, QColor
+from PyQt5.QtWidgets import QLabel, QMainWindow
+
+
+
+
+
+def _to_qimage_rgb(img: np.ndarray) -> Optional[QImage]:
+    if not isinstance(img, np.ndarray) or img.ndim not in (2, 3):
+        return None
+    if img.ndim == 2:
+        h, w = img.shape
+        return QImage(img.data, w, h, w, QImage.Format_Grayscale8).copy()
+    h, w, c = img.shape
+    if c == 3:
+        rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        return QImage(rgb.data, w, h, w * 3, QImage.Format_RGB888).copy()
+    if c == 4:
+        rgba = cv2.cvtColor(img, cv2.COLOR_BGRA2RGBA)
+        return QImage(rgba.data, w, h, w * 4, QImage.Format_RGBA8888).copy()
+    return None
+
+
+
+class ProjectDisplay(QMainWindow):
+    """
+    Fullscreen window pinned to a target screen.
+    - update_image(np.ndarray BGR/BGRA) scales to fill while keeping AR
+    - show_image_fullscreen_on_second_monitor(image, H) applies homography (if 3x3)
+    - show_solid_fullscreen((r,g,b)) paints absolute white (or any color) at projector res
+    """
+
+    def __init__(self, screen, parent=None):
+        super().__init__(parent)
+        self.screen = screen
+        # Load flip config if present
+        self._flip_mode = os.path.join(os.path.dirname(__file__), 'Assets', 'Generated', 'flip_config.json')
+        # Default behavior: preserve prior horizontal flip unless STIM_USE_FLIP_CONFIG=1
+        self._flip_pref = 'horizontal'
+        try:
+            if os.environ.get('STIM_USE_FLIP_CONFIG', '0').strip() == '1':
+                with open(self._flip_mode, 'r') as f:
+                    cfg = json.load(f)
+                    m = str(cfg.get('flip_mode', '')).lower().strip()
+                    if m in ('none','horizontal','vertical','both'):
+                        self._flip_pref = m
+        except Exception:
+            pass
+
+
+        self.label = QLabel(self)
+        self.label.setAlignment(Qt.AlignCenter)
+        self.label.setScaledContents(False)  
+        self.setCentralWidget(self.label)
+        self._last_target_size = None
+
+
+
+        geom: QRect = screen.geometry()
+        self.move(geom.topLeft())
+        self.resize(geom.size())
+
+        pal = self.palette()
+        pal.setColor(QPalette.Window, QColor(0, 0, 0))
+        self.setPalette(pal)
+        self.setAutoFillBackground(True)
+
+
+        self.showFullScreen()
+        self.raise_()
+        self.activateWindow()
+
+    def update_image(self, image_bgr_or_bgra: np.ndarray):
+        try:
+            qimg = _to_qimage_rgb(image_bgr_or_bgra)
+            if qimg is None:
+                print("update_image: invalid image input"); return
+            pm = QPixmap.fromImage(qimg)
+
+            target = self.size()
+            if self._last_target_size != target:
+                self._last_target_size = target
+            scaled = pm.scaled(target, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            self.label.setPixmap(scaled)
+
+            if not self.isVisible():
+                self.showFullScreen()
+        except Exception as e:
+            print(f"update_image failed: {e}")
+
+    def _proj_size(self):
+        g = self.screen.geometry()
+        return g.width(), g.height()
+
+    def show_image_fullscreen_on_second_monitor(self, image_bgr: np.ndarray, homography_matrix=None):
+        try:
+            W, H = self._proj_size()
+            H_eff = homography_matrix if (isinstance(homography_matrix, np.ndarray) and homography_matrix.shape == (3, 3)) else np.eye(3, dtype=np.float64)
+
+            # Always warp to projector resolution with provided or identity homography (keep BGR)
+            # Allow callers to pass None to skip warping (used when LUT-prewarped content is provided)
+            if homography_matrix is None:
+                img = cv2.resize(image_bgr, (W, H), interpolation=cv2.INTER_LINEAR)
+            else:
+                img = cv2.warpPerspective(
+                    image_bgr, H_eff, (W, H),
+                    flags=cv2.INTER_LINEAR,
+                    borderMode=cv2.BORDER_CONSTANT, borderValue=(0, 0, 0)
+                )
+
+            # Apply configured flip mode (none/horizontal/vertical/both)
+            try:
+                if self._flip_pref == 'horizontal':
+                    img = cv2.flip(img, 1)
+                elif self._flip_pref == 'vertical':
+                    img = cv2.flip(img, 0)
+                elif self._flip_pref == 'both':
+                    img = cv2.flip(img, -1)
+                # else 'none' → no flip
+            except Exception:
+                pass
+
+            self.update_image(img)
+        except Exception as e:
+            print(f"show_image_fullscreen_on_second_monitor error: {e}")
+
+    def show_solid_fullscreen(self, color=(255, 255, 255)):
+        try:
+            W, H = self._proj_size()
+            qimg = QImage(W, H, QImage.Format_RGB32)
+            qimg.fill(QColor(*color))
+            self.label.setPixmap(QPixmap.fromImage(qimg))
+        except Exception as e:
+            print(f"show_solid_fullscreen error: {e}")
+
+    def show_image_raw_no_warp_no_flip(self, image_bgr: np.ndarray):
+        """Display image directly (no homography, no horizontal flip)."""
+        try:
+            # Bypass scaling to preserve 1:1 pixels for structured-light/LUT
+            qimg = _to_qimage_rgb(image_bgr)
+            if qimg is None:
+                print("show_image_raw_no_warp_no_flip: invalid image input"); return
+            pm = QPixmap.fromImage(qimg)
+            # Ensure we do not scale the pixmap
+            self.label.setScaledContents(False)
+            self.label.setPixmap(pm)
+        except Exception as e:
+            print(f"show_image_raw_no_warp_no_flip error: {e}")
+
+    def closeEvent(self, event):
+        try:
+            self.label.clear()
+            self.label.setPixmap(QPixmap())
+            print("ProjectDisplay resources cleaned up.")
+        except Exception as e:
+            print(f"Error during ProjectDisplay cleanup: {e}")
+        super().closeEvent(event)
+

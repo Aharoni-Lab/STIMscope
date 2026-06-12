@@ -1,0 +1,53 @@
+# Dependabot auto-PR config.
+#
+# What this gives us:
+#   1) Weekly version-bump PRs for direct pip dependencies (no transitive
+#      churn). Grouped per ecosystem so we get one PR/week instead of dozens.
+#   2) Weekly Docker base-image bump PRs.
+#   3) Weekly GitHub Actions version bumps.
+#   4) Security-fix PRs are exempt from grouping and open immediately when
+#      a new advisory drops (this is Dependabot's default for vulnerability
+#      alerts and doesn't need to be enumerated here).
+#
+# Set open-pull-requests-limit conservatively — the platform is a research
+# codebase, not a service. Bumps should be reviewed by a human before
+# anything ships in a Docker image.
+
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    groups:
+      runtime:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    labels:
+      - "dependencies"
+      - "pip"
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 2
+    labels:
+      - "dependencies"
+      - "docker"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 2
+    labels:
+      - "dependencies"
+      - "github-actions"

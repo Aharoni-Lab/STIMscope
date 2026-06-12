@@ -1,0 +1,64 @@
+version: "2.3"
+services:
+  crispi:
+    image: crispi:latest
+    runtime: nvidia
+    privileged: true
+    environment:
+      - DISPLAY=${DISPLAY:-:0}
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - QT_X11_NO_MITSHM=1
+      - GENICAM_GENTL64_PATH=/opt/ids-peak/lib/aarch64-linux-gnu/ids-peak/cti
+    network_mode: host
+    volumes:
+      # X11 display socket — :rw required (read-only breaks PyQt5/OpenGL rendering)
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      # Mount entire STIMViewer — edit on host, changes appear instantly
+      - ./STIMscope/STIMViewer_CRISPI:/app/STIMViewer_CRISPI
+      # Mount data output — results persist on host
+      - ./data:/data
+      # User home — only mount specific directories (not .ssh/.claude/.bashrc etc).
+      # ${HOME} resolves at compose-up time on whatever host runs the platform.
+      - ${HOME}/Desktop:/host_home/Desktop:ro
+      - ${HOME}/Videos:/host_home/Videos:ro
+      - ${HOME}/Downloads:/host_home/Downloads:ro
+      # IDS Peak SDK — set IDS_PEAK_PATH to your install location
+      - ${IDS_PEAK_PATH:-/opt/ids-peak}:/opt/ids-peak:ro
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+      - /dev/gpiochip1:/dev/gpiochip1
+      - /dev/video0:/dev/video0
+      - /dev/video1:/dev/video1
+
+  gui:
+    image: crispi:latest
+    runtime: nvidia
+    privileged: true
+    entrypoint: ["bash", "-c"]
+    command: ["cd /app/STIMViewer_CRISPI && python3 main_gui.pyw"]
+    environment:
+      - DISPLAY=${DISPLAY:-:0}
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - QT_X11_NO_MITSHM=1
+      - PYTHONUNBUFFERED=1
+      - GENICAM_GENTL64_PATH=/opt/ids-peak/lib/aarch64-linux-gnu/ids-peak/cti
+    network_mode: host
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ./STIMscope/STIMViewer_CRISPI:/app/STIMViewer_CRISPI
+      - ./STIMscope/ZMQ_sender_mask:/app/ZMQ_sender_mask
+      - ./data:/data
+      # Broad read-only mounts so "Load Recording" can pick up files from anywhere:
+      #   ${HOME}/...              -> /host_home/...        (Desktop, Videos, Downloads, etc.)
+      #   /media/...               -> /host_media/...       (USB drives, SD cards)
+      #   /mnt/...                 -> /host_mnt/...         (manually mounted volumes)
+      # ${HOME} resolves at compose-up time on whatever host runs the platform.
+      - ${HOME}:/host_home:ro
+      - /media:/host_media:ro
+      - /mnt:/host_mnt:ro
+      - ${IDS_PEAK_PATH:-/opt/ids-peak}:/opt/ids-peak:ro
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+      - /dev/gpiochip1:/dev/gpiochip1

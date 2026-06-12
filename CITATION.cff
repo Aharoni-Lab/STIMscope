@@ -1,0 +1,126 @@
+# CITATION.cff — machine-readable citation metadata.
+# https://citation-file-format.github.io
+#
+# If you use STIMscope in your research, please cite BOTH the software
+# (this repository) and the preprint that describes the platform
+# (preferred-citation, below).
+
+cff-version: 1.2.0
+title: "STIMscope"
+message: "If you use this software, please cite both the software (this repository) and the preprint listed under preferred-citation."
+type: software
+authors:
+  - given-names: "Hamid"
+    family-names: "Chorsi"
+    affiliation: "UCLA Department of Neurology / Department of Electrical and Computer Engineering"
+  - given-names: "Saray"
+    family-names: "Soldado-Magraner"
+    affiliation: "UCLA Department of Neurobiology"
+  - given-names: "Yan"
+    family-names: "Jin"
+    affiliation: "UCLA Department of Neurology"
+  - given-names: "Imaan"
+    family-names: "Soltanalipouryekesammak"
+    affiliation: "UCLA Department of Electrical and Computer Engineering"
+  - given-names: "Alex"
+    family-names: "Zheng"
+    affiliation: "UCLA Department of Computer Science"
+  - given-names: "Dejan"
+    family-names: "Markovic"
+    affiliation: "UCLA Department of Electrical and Computer Engineering"
+  - given-names: "Daniel H."
+    family-names: "Geschwind"
+    affiliation: "UCLA Department of Neurology"
+  - given-names: "Peyman"
+    family-names: "Golshani"
+    affiliation: "UCLA Department of Neurology"
+  - given-names: "Dean V."
+    family-names: "Buonomano"
+    affiliation: "UCLA Department of Neurobiology"
+  - given-names: "Daniel"
+    family-names: "Aharoni"
+    affiliation: "UCLA Department of Neurology"
+license: "GPL-3.0"
+repository-code: "https://github.com/Aharoni-Lab/STIMscope"
+url: "https://github.com/Aharoni-Lab/STIMscope"
+abstract: >
+  Spatio-Temporal Illumination Microscope (STIMscope): a one-photon
+  benchtop platform that integrates large-aperture tandem optics with
+  a small-pixel back-illuminated CMOS sensor, a digital micromirror
+  device (DMD) for patterned illumination, and a GPU-based processing
+  unit coordinated by a microcontroller for hardware-level
+  synchronization. Distributed as a Docker image for NVIDIA Jetson
+  alongside the accompanying CRISPI software pipeline.
+
+# Cite the preprint that describes the platform.
+preferred-citation:
+  type: article
+  title: "STIMscope: centimeter-scale all-optical imaging and patterned optogenetic manipulation at single-cell resolution"
+  authors:
+    - given-names: "Hamid"
+      family-names: "Chorsi"
+      affiliation: "UCLA Department of Neurology / Department of Electrical and Computer Engineering"
+    - given-names: "Saray"
+      family-names: "Soldado-Magraner"
+      affiliation: "UCLA Department of Neurobiology"
+    - given-names: "Yan"
+      family-names: "Jin"
+      affiliation: "UCLA Department of Neurology"
+    - given-names: "Imaan"
+      family-names: "Soltanalipouryekesammak"
+      affiliation: "UCLA Department of Electrical and Computer Engineering"
+    - given-names: "Alex"
+      family-names: "Zheng"
+      affiliation: "UCLA Department of Computer Science"
+    - given-names: "Dejan"
+      family-names: "Markovic"
+      affiliation: "UCLA Department of Electrical and Computer Engineering"
+    - given-names: "Daniel H."
+      family-names: "Geschwind"
+      affiliation: "UCLA Department of Neurology"
+    - given-names: "Peyman"
+      family-names: "Golshani"
+      affiliation: "UCLA Department of Neurology"
+    - given-names: "Dean V."
+      family-names: "Buonomano"
+      affiliation: "UCLA Department of Neurobiology"
+    - given-names: "Daniel"
+      family-names: "Aharoni"
+      affiliation: "UCLA Department of Neurology"
+  year: 2026
+  journal: "bioRxiv"
+  doi: "10.64898/2026.05.27.728160"
+  url: "https://www.biorxiv.org/content/10.64898/2026.05.27.728160v1"
+  license: "CC-BY-NC-ND-4.0"
+
+# Hardware + standards the platform depends on.
+references:
+  # DMD controller wire protocol.
+  - type: report
+    title: "DLPC3479 Software Programmer's Guide (DLPU081A)"
+    authors:
+      - name: "Texas Instruments"
+    institution:
+      name: "Texas Instruments"
+    notes: >
+      Wire-level I²C protocol for the TI DLP4710 DMD with the DLPC3479
+      controller used by the projector engine.
+
+  # Industrial camera SDK.
+  - type: software
+    title: "IDS Peak SDK"
+    authors:
+      - name: "IDS Imaging Development Systems GmbH"
+    url: "https://en.ids-imaging.com/download-peak.html"
+    notes: >
+      USB3 industrial camera SDK (GenICam node map) used for hardware
+      camera acquisition in the validated configuration.
+
+  # Camera transport / node-map standard.
+  - type: standard
+    title: "GenICam — Generic Interface for Cameras"
+    authors:
+      - name: "European Machine Vision Association (EMVA)"
+    notes: >
+      Standard behind the camera trigger / node-map abstraction
+      surfaced in the GUI's Sensor Settings dialog.

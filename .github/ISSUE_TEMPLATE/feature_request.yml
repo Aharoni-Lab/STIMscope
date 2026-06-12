@@ -1,0 +1,45 @@
+name: Feature request
+description: Propose a new capability or workflow improvement.
+title: "[feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: What problem would this solve? Who needs it?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed approach
+      description: |
+        How you'd implement it. Doesn't have to be fully spec'd —
+        rough sketch is fine.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other paths and why they're less attractive.
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - "Small (single function / a few lines)"
+        - "Medium (one module / one mixin)"
+        - "Large (cross-cutting / new subsystem)"
+        - "Not sure"
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional notes

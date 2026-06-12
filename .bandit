@@ -1,0 +1,13 @@
+# Bandit security scanner configuration.
+#
+# Tightening guidance: do NOT add `skips` here without project-level approval.
+# Each #nosec comment in source must name the test ID + a brief rationale.
+#
+# Usage:
+#   bandit -r STIMscope/STIMViewer_CRISPI/ -c .bandit -ll
+#
+# Note: bandit's --exclude flag uses substring matching on full paths.
+
+exclude_dirs:
+  - tests
+  - .git
