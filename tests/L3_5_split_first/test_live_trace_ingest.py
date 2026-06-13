@@ -328,144 +328,6 @@ class TestC5OnFrame:
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-class TestC6MonitorGpuMemory:
-    """Contract: cuda runtime memGetInfo → threshold check.
-
-    Branches:
-    - CUDA_USABLE False → early return
-    - memGetInfo raises → silent return
-    - ratio <= threshold → no warning
-    - ratio > threshold but used < 100MB → no warning (filter first-sample noise)
-    - ratio > threshold AND used > 100MB → warn + emit + cleanup
-    """
-
-    def test_cuda_unusable_early_return(self):
-        host = _Host()
-        with patch.object(lti, "CUDA_USABLE", False):
-            host._monitor_gpu_memory()
-        # No stats change
-        assert host.stats["gpu_memory_peak"] == 0.0
-        host.gpu_memory_infoing.emit.assert_not_called()
-
-    def test_meminfo_exception_silent_return(self):
-        host = _Host()
-        fake_cp = MagicMock()
-        fake_cp.cuda.runtime.memGetInfo.side_effect = RuntimeError("cuda hosed")
-        with patch.object(lti, "CUDA_USABLE", True), \
-             patch.object(lti, "cp", fake_cp):
-            host._monitor_gpu_memory()
-        host.gpu_memory_infoing.emit.assert_not_called()
-
-    def test_low_ratio_no_warning(self):
-        host = _Host()
-        fake_cp = MagicMock()
-        # 50% used, well below 60% threshold
-        fake_cp.cuda.runtime.memGetInfo.return_value = (
-            500 * 1024 ** 2,  # 500 MB free
-            1000 * 1024 ** 2,  # 1000 MB total
-        )
-        with patch.object(lti, "CUDA_USABLE", True), \
-             patch.object(lti, "cp", fake_cp):
-            host._monitor_gpu_memory()
-        assert host.stats["gpu_memory_peak"] == 0.5
-        host.gpu_memory_infoing.emit.assert_not_called()
-
-    def test_high_ratio_but_low_absolute_use_no_warning(self):
-        """First-sample 100% noise: ratio > threshold but used < 100MB → skip."""
-        host = _Host()
-        fake_cp = MagicMock()
-        fake_cp.cuda.runtime.memGetInfo.return_value = (
-            10 * 1024 ** 2,   # 10 MB free
-            50 * 1024 ** 2,   # 50 MB total → ratio = 0.8, used = 40MB
-        )
-        with patch.object(lti, "CUDA_USABLE", True), \
-             patch.object(lti, "cp", fake_cp):
-            host._monitor_gpu_memory()
-        host.gpu_memory_infoing.emit.assert_not_called()
-
-    def test_high_ratio_and_high_absolute_use_warns(self, capsys):
-        host = _Host()
-        fake_cp = MagicMock()
-        # 80% used, > 60% threshold, used = 800MB > 100MB
-        fake_cp.cuda.runtime.memGetInfo.return_value = (
-            200 * 1024 ** 2,   # 200 MB free
-            1000 * 1024 ** 2,  # 1000 MB total
-        )
-        with patch.object(lti, "CUDA_USABLE", True), \
-             patch.object(lti, "cp", fake_cp):
-            host._monitor_gpu_memory()
-        host.gpu_memory_infoing.emit.assert_called_once()
-        msg = host.gpu_memory_infoing.emit.call_args[0][0]
-        assert "High GPU memory" in msg
-
-    def test_emit_exception_swallowed(self):
-        host = _Host()
-        host.gpu_memory_infoing.emit.side_effect = RuntimeError("signal broken")
-        fake_cp = MagicMock()
-        fake_cp.cuda.runtime.memGetInfo.return_value = (
-            200 * 1024 ** 2, 1000 * 1024 ** 2,
-        )
-        with patch.object(lti, "CUDA_USABLE", True), \
-             patch.object(lti, "cp", fake_cp), \
-             patch.object(host, "_cleanup_gpu_memory") as mock_cleanup:
-            # Should not raise
-            host._monitor_gpu_memory()
-            # Cleanup still called
-            mock_cleanup.assert_called_once()
-
-    def test_zero_total_no_div_by_zero(self):
-        host = _Host()
-        fake_cp = MagicMock()
-        fake_cp.cuda.runtime.memGetInfo.return_value = (0, 0)
-        with patch.object(lti, "CUDA_USABLE", True), \
-             patch.object(lti, "cp", fake_cp):
-            host._monitor_gpu_memory()
-        # ratio = 0.0 → no warning
-        host.gpu_memory_infoing.emit.assert_not_called()
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# C7 — _cleanup_gpu_memory: lock + mempool free
-# ─────────────────────────────────────────────────────────────────────────────
-
-
-class TestC7CleanupGpuMemory:
-    """Contract: under self._gpu_lock, call cp.get_default_memory_pool().free_all_blocks().
-    CUDA-unusable returns early. Free exception logged but not raised."""
-
-    def test_cuda_unusable_early_return(self):
-        host = _Host()
-        with patch.object(lti, "CUDA_USABLE", False):
-            host._cleanup_gpu_memory()
-        # Lock should not be acquired (no way to verify without internals,
-        # but no crash is the contract)
-
-    def test_calls_mempool_free_under_lock(self):
-        host = _Host()
-        fake_cp = MagicMock()
-        fake_pool = MagicMock()
-        fake_cp.get_default_memory_pool.return_value = fake_pool
-        with patch.object(lti, "CUDA_USABLE", True), \
-             patch.object(lti, "cp", fake_cp):
-            host._cleanup_gpu_memory()
-        fake_pool.free_all_blocks.assert_called_once()
-
-    def test_free_exception_logged(self, capsys):
-        host = _Host()
-        fake_cp = MagicMock()
-        fake_pool = MagicMock()
-        fake_pool.free_all_blocks.side_effect = RuntimeError("mempool gone")
-        fake_cp.get_default_memory_pool.return_value = fake_pool
-        with patch.object(lti, "CUDA_USABLE", True), \
-             patch.object(lti, "cp", fake_cp):
-            host._cleanup_gpu_memory()  # should not raise
-        captured = capsys.readouterr()
-        assert "GPU mempool free failed" in captured.out
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# C8 — _update_performance_stats: uptime + memory peak + emit
-# ─────────────────────────────────────────────────────────────────────────────
 
 
 class TestC8UpdatePerformanceStats:
@@ -516,12 +378,11 @@ class TestC8UpdatePerformanceStats:
 class TestC9MixinIntegration:
     """Contract: methods accessible on subclass; no __init__ on mixin."""
 
-    def test_all_8_methods_on_subclass(self):
+    def test_all_6_methods_on_subclass(self):
         host = _Host()
         for name in (
             "_connect_camera_signals", "_disconnect_camera_signals",
             "_on_camera_frame", "_on_camera_qimage", "on_frame",
-            "_monitor_gpu_memory", "_cleanup_gpu_memory",
             "_update_performance_stats",
         ):
             method = getattr(host, name, None)
@@ -531,7 +392,6 @@ class TestC9MixinIntegration:
         for name in (
             "_connect_camera_signals", "_disconnect_camera_signals",
             "_on_camera_frame", "_on_camera_qimage", "on_frame",
-            "_monitor_gpu_memory", "_cleanup_gpu_memory",
             "_update_performance_stats",
         ):
             assert name in LiveTraceIngestMixin.__dict__, \
@@ -549,9 +409,7 @@ class TestC9MixinIntegration:
 #   - Snapshot required for trace outputs (on_frame is the camera→trace
 #     seam, _connect_camera_signals candidate-order is a published
 #     contract; both snapshotted here)
-#   - Concurrency ≥1 if mixin touches threads (`_cleanup_gpu_memory`
-#     holds `self._gpu_lock` — pin lock-held invariant + add_frame
-#     thread safety)
+#   - Concurrency ≥1 if mixin touches threads (add_frame thread safety)
 #
 # Closes part of the OPEN BLOCK on iter-42 L3.5 PROMOTION per
 # audit_findings.log lines 1655-2235 + docs/PHASE_A5_DEFERRAL.md.
@@ -563,86 +421,6 @@ import hashlib  # noqa: E402
 from hypothesis import HealthCheck, given, settings  # noqa: E402
 from hypothesis import strategies as st  # noqa: E402
 
-
-class TestPropertyMonitorGpuMemory:
-    """§1.1 universal floor: ≥2 property tests for `_monitor_gpu_memory`.
-
-    The GPU-memory monitor is a stats accumulator — any (free_b, total_b)
-    pair must produce a ratio in [0, 1] and the peak must never decrease
-    over a sequence of calls.
-    """
-
-    @given(
-        total_b=st.integers(min_value=1, max_value=64 * 1024**3),
-        used_b=st.integers(min_value=0, max_value=64 * 1024**3),
-    )
-    @settings(max_examples=60, deadline=None,
-              suppress_health_check=[HealthCheck.too_slow])
-    def test_ratio_bounded_and_peak_nondecreasing(self, total_b, used_b):
-        """For any (total, used) with used <= total, ratio is in [0, 1]
-        AND stats["gpu_memory_peak"] is monotonic non-decreasing across
-        repeated calls. Pins the stats-accumulator invariant — any
-        regression that resets the peak (e.g. `peak = ratio` instead of
-        `max(peak, ratio)`) would fail this."""
-        # Force used <= total
-        used_b = min(used_b, total_b)
-        free_b = total_b - used_b
-
-        host = _Host()
-        before_peak = host.stats["gpu_memory_peak"] = 0.5  # arbitrary prior peak
-
-        fake_runtime = MagicMock()
-        fake_runtime.memGetInfo.return_value = (free_b, total_b)
-        fake_cp = MagicMock()
-        fake_cp.cuda.runtime = fake_runtime
-        with patch.object(lti, "cp", fake_cp), \
-             patch.object(lti, "CUDA_USABLE", True):
-            host._monitor_gpu_memory()
-
-        after_peak = host.stats["gpu_memory_peak"]
-        # ratio bounded in [0, 1]: used <= total guarantees this
-        # Peak is non-decreasing
-        assert after_peak >= before_peak, (
-            f"gpu_memory_peak regressed: {before_peak} → {after_peak} "
-            f"for (free={free_b}, total={total_b})"
-        )
-        assert 0.0 <= after_peak <= 1.0
-
-    @given(
-        readings=st.lists(
-            st.tuples(
-                st.integers(min_value=0, max_value=64 * 1024**3),  # used
-                st.integers(min_value=1, max_value=64 * 1024**3),  # total
-            ),
-            min_size=2, max_size=10,
-        )
-    )
-    @settings(max_examples=20, deadline=None,
-              suppress_health_check=[HealthCheck.too_slow])
-    def test_peak_equals_max_of_sequence(self, readings):
-        """Across a sequence of (used, total) readings, the final peak
-        equals max(used_i / total_i) over the sequence. Pins the
-        max-accumulator semantics — any change to running-average or
-        windowed semantics breaks this."""
-        host = _Host()
-        host.stats["gpu_memory_peak"] = 0.0
-
-        expected_peak = 0.0
-        for used, total in readings:
-            used = min(used, total)
-            free_b = total - used
-            ratio = used / total
-            expected_peak = max(expected_peak, ratio)
-
-            fake_runtime = MagicMock()
-            fake_runtime.memGetInfo.return_value = (free_b, total)
-            fake_cp = MagicMock()
-            fake_cp.cuda.runtime = fake_runtime
-            with patch.object(lti, "cp", fake_cp), \
-                 patch.object(lti, "CUDA_USABLE", True):
-                host._monitor_gpu_memory()
-
-        assert host.stats["gpu_memory_peak"] == pytest.approx(expected_peak)
 
 
 class TestSnapshotIngestContract:
@@ -741,59 +519,6 @@ class TestConcurrencyGpuLock:
     - Lock is acquired during cleanup
     - on_frame is reentrant under concurrent calls (queues all frames)
     """
-
-    def test_cleanup_holds_gpu_lock_during_free_blocks(self):
-        """While ``_cleanup_gpu_memory`` runs, a second thread cannot
-        acquire ``self._gpu_lock`` — proves the cleanup is properly
-        guarded against concurrent cupy mempool access.
-
-        Pattern: stub free_all_blocks() with a synchronization gate
-        that signals "I'm inside the lock"; from another thread, try
-        to acquire the lock non-blockingly and assert it is held."""
-        host = _Host()
-
-        inside_lock = threading.Event()
-        proceed = threading.Event()
-        other_thread_blocked = threading.Event()
-
-        def _gated_free():
-            inside_lock.set()
-            # Block here until the other thread has tried (and failed)
-            # to acquire the lock — proves the lock is held.
-            assert proceed.wait(timeout=2.0), "proceed signal never set"
-
-        fake_mp = MagicMock()
-        fake_mp.free_all_blocks.side_effect = _gated_free
-        fake_cp = MagicMock()
-        fake_cp.get_default_memory_pool.return_value = fake_mp
-
-        def _cleanup_worker():
-            with patch.object(lti, "cp", fake_cp), \
-                 patch.object(lti, "CUDA_USABLE", True):
-                host._cleanup_gpu_memory()
-
-        t = threading.Thread(target=_cleanup_worker, daemon=True)
-        t.start()
-        assert inside_lock.wait(timeout=2.0), "cleanup never entered"
-
-        # Try non-blocking acquire from this thread — must fail
-        acquired = host._gpu_lock.acquire(blocking=False)
-        if acquired:
-            # Release immediately to avoid deadlock on test failure
-            host._gpu_lock.release()
-            other_thread_blocked.clear()
-        else:
-            other_thread_blocked.set()
-
-        # Release the cleanup thread so it can exit
-        proceed.set()
-        t.join(timeout=2.0)
-        assert not t.is_alive(), "cleanup worker did not finish"
-
-        assert other_thread_blocked.is_set(), (
-            "_gpu_lock was NOT held during _cleanup_gpu_memory — "
-            "concurrent cupy mempool access is unsafe."
-        )
 
     def test_on_frame_concurrent_queueing(self):
         """Many concurrent ``on_frame`` calls must all reach

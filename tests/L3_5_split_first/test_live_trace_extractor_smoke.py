@@ -116,7 +116,7 @@ class TestS2PublicClassSurface:
 
 
 class TestS3QtSignals:
-    """Contract: the 5 declared Qt signals on LiveTraceExtractor are present.
+    """Contract: the 4 declared Qt signals on LiveTraceExtractor are present.
 
     The class declares these at the class body (lines 78-82 in the
     pre-decomposition file). They are the public IPC surface — any.6 refactor that breaks them breaks the GUI silently
@@ -125,7 +125,6 @@ class TestS3QtSignals:
 
     @pytest.mark.parametrize("signal_name", [
         "update_plot_signal",
-        "gpu_memory_infoing",
         "sync_state_changed",
         "performance_update",
         "error_occurred",
@@ -226,10 +225,12 @@ class TestS5ModuleConstants:
         assert M_new == M_legacy == 8
 
     def test_extractor_constants_preserved(self):
-        """The 5 non-extracted constants are still in live_trace_extractor."""
+        """The 2 surviving non-extracted constants are still in live_trace_extractor.
+        (MEMORY_MONITORING_INTERVAL, GPU_MEMORY_CLEANUP_INTERVAL, and
+        JETSON_GPU_MEMORY_LIMIT were intentionally removed when the periodic
+        GPU-memory monitoring + cleanup feature was deleted — see
+        ``feedback_no_aggressive_memory_monitoring``.)
+        """
         import live_trace.extractor as lte
         assert lte.THREAD_POOL_SIZE == 1
         assert lte.SYNCHRONIZATION_TIMEOUT == 3.0
-        assert lte.MEMORY_MONITORING_INTERVAL == 5
-        assert lte.GPU_MEMORY_CLEANUP_INTERVAL == 15
-        assert lte.JETSON_GPU_MEMORY_LIMIT == 0.60

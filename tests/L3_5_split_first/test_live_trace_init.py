@@ -244,7 +244,9 @@ class TestC3InitPlotting:
         host._setup_multi_plot_layout.assert_not_called()
         assert hasattr(host, "_plot_timer")
         assert host._plot_timer.isActive()
-        assert host._plot_timer.interval() == int(1000 / 30.0)
+        # Plot timer is capped at ~15Hz (67ms) regardless of camera fps
+        # to avoid saturating the Qt event loop during many-ROI plotting.
+        assert host._plot_timer.interval() == max(int(1000 / 30.0), 67)
         host._plot_timer.stop()
 
     def test_roi_count_le_20_uses_single_layout(self):
@@ -278,13 +280,14 @@ class TestC3InitPlotting:
         assert hasattr(host, "_plot_timer")
         host._plot_timer.stop()
 
-    def test_timer_interval_matches_camera_fps(self):
+    def test_timer_interval_capped_at_15hz(self):
         host = _Host(ids=[1])
         host.camera.get_actual_fps = MagicMock(return_value=60.0)
         with patch.object(lti_init, "PYQTPGRAPH_AVAILABLE", True):
             host._init_plotting(plot_widget=MagicMock())
-        # 1000 / 60 = 16.66 → int = 16
-        assert host._plot_timer.interval() == 16
+        # 60fps would give 16ms but production caps at ~15Hz (67ms minimum)
+        # to keep the Qt main thread from saturating during many-ROI plotting.
+        assert host._plot_timer.interval() == max(int(1000 / 60.0), 67)
         host._plot_timer.stop()
 
     def test_last_fps_est_recorded(self):
