@@ -1,0 +1,103 @@
+name: Publish Docker image
+
+# Triggers:
+#   - workflow_dispatch  : manual run via the Actions tab. The primary path for
+#                          ad-hoc publishes (and the only way to trigger the
+#                          very first run after this workflow lands).
+#   - push: tags: [v*]   : automatic publish on a release tag (e.g. v1.0.0).
+#                          Recommend tagging the merge commit you want to ship,
+#                          NOT every commit on main — image builds are slow
+#                          (~30 min) and the image is large (~12 GB).
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Additional tag to publish (in addition to :latest + :sha-<7>). e.g. v1.0.0'
+        required: false
+        default: ''
+  push:
+    tags:
+      - 'v*'
+
+# GITHUB_TOKEN gets these permissions for this workflow only.
+# packages: write is what lets the workflow create + push to ghcr.io packages
+# linked to this repo. contents: read is for actions/checkout.
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    name: Build + push to ghcr.io
+    # Free ARM64 runner — matches the Jetson target architecture (aarch64).
+    # Only available on public repos. 4 cores / 16 GB RAM / 14 GB disk.
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Stub the IDS Peak SDK .deb
+        # The Dockerfile expects ids-peak_*.deb at the build context root. The
+        # SDK is license-restricted and not redistributable (gitignored). The
+        # Dockerfile already handles a 0-byte stub gracefully — `dpkg -i ... || true`
+        # skips installation, the image runs in camera-absent / simulation-friendly
+        # mode. Operators bring their own SDK at runtime via the bind-mount in
+        # docker-compose.yml.
+        run: |
+          touch ids-peak_2.17.0.0-488_arm64.deb
+          ls -la ids-peak_*.deb
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          # GITHUB_TOKEN is auto-minted per-run; scope set by `permissions:` above.
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image tags
+        id: tags
+        run: |
+          SHA7=$(echo "${{ github.sha }}" | cut -c1-7)
+          # Always tag :latest + :sha-<7-char>. Optionally an extra user-supplied tag.
+          TAGS="ghcr.io/aharoni-lab/stimscope:latest
+          ghcr.io/aharoni-lab/stimscope:sha-${SHA7}"
+          if [ -n "${{ inputs.tag }}" ]; then
+            TAGS="${TAGS}
+          ghcr.io/aharoni-lab/stimscope:${{ inputs.tag }}"
+          fi
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            TAGS="${TAGS}
+          ghcr.io/aharoni-lab/stimscope:${{ github.ref_name }}"
+          fi
+          {
+            echo "tags<<EOF"
+            echo "$TAGS"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build + push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.tags.outputs.tags }}
+          # OCI annotations the docs recommend — these auto-link the package
+          # to the repo (so it shows up in the repo sidebar + inherits the
+          # repo's access controls).
+          labels: |
+            org.opencontainers.image.source=https://github.com/Aharoni-Lab/STIMscope
+            org.opencontainers.image.description=STIMscope / CRISPI base platform — open-source platform for centimeter-scale calcium imaging and DMD-patterned optogenetic stimulation on NVIDIA Jetson
+            org.opencontainers.image.licenses=GPL-3.0
+            org.opencontainers.image.revision=${{ github.sha }}
+          # Cache build layers across runs to speed up subsequent builds.
+          # First run rebuilds from scratch (~30 min); subsequent runs that
+          # touch only a few layers complete in a fraction of that.
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
