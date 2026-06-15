@@ -14,7 +14,7 @@ hypothesis~=6.98
 
 # Numerical comparison helpers
 numpy~=1.24
-scipy~=1.11
+scipy~=1.17
 
 # Security / supply-chain scanning
 bandit~=1.7              # static security analysis for Python
