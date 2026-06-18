@@ -1,0 +1,7 @@
+"./DPP343x.obj"
+"./Ite6801.obj"
+"./Main.obj"
+"./i2c_master.obj"
+"../lnk_msp430f5514.cmd"
+-llibc.a
+-llibmath.a
