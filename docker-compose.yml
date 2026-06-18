@@ -18,7 +18,7 @@ services:
       - ./STIMscope/STIMViewer_CRISPI:/app/STIMViewer_CRISPI
       # Mount data output — results persist on host
       - ./data:/data
-      # User home — only mount specific directories (not .ssh/.claude/.bashrc etc).
+      # User home — only mount specific directories (not .ssh/.bashrc etc).
       # ${HOME} resolves at compose-up time on whatever host runs the platform.
       - ${HOME}/Desktop:/host_home/Desktop:ro
       - ${HOME}/Videos:/host_home/Videos:ro

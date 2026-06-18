@@ -20,11 +20,7 @@ secrets*
 id_rsa*
 id_ed25519*
 
-# Claude Code / developer-local
-.claude/
-CLAUDE.md
-setup-claude-memory.sh
-setup-claude-settings.sh
+# developer-local
 setup-remote-jetson.sh
 
 # Data outputs (mounted at runtime, not baked into image)

@@ -20,4 +20,3 @@
 - [Issues](https://github.com/Aharoni-Lab/STIMscope/issues)
 - [LICENSE (GPL-3.0)](https://github.com/Aharoni-Lab/STIMscope/blob/main/LICENSE)
 - [Architecture deep-dive](https://github.com/Aharoni-Lab/STIMscope/blob/main/docs/IMPLEMENTATION_NOTES.md)
-- [CLAUDE.md](https://github.com/Aharoni-Lab/STIMscope/blob/main/CLAUDE.md)

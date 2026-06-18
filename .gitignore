@@ -48,9 +48,6 @@ secrets*
 id_rsa*
 id_ed25519*
 
-# Claude Code memory (per-developer)
-setup-claude-memory.sh
-
 # IDE & OS
 .vscode/
 .idea/

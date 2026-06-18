@@ -119,8 +119,7 @@ def main(argv=None):
     # Match the API pattern used by the working camera.py + video_recorder.py:
     # the ipl_extension provides BufferToImage; the image then has get_numpy_*
     # accessors. The Image_CreateFromSizeAndBuffer API used previously does
-    # not exist in this SDK version (per CLAUDE.md "API changes between SDK
-    # versions").
+    # not exist in this SDK version
     from ids_peak import ids_peak
     from ids_peak_ipl import ids_peak_ipl  # noqa: F401 (imported for side-effect)
     from ids_peak import ids_peak_ipl_extension
