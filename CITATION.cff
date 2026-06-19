@@ -2,12 +2,11 @@
 # https://citation-file-format.github.io
 #
 # If you use STIMscope in your research, please cite BOTH the software
-# (this repository) and the preprint that describes the platform
-# (preferred-citation, below).
+# (this repository) and the preferred-citation below.
 
 cff-version: 1.2.0
 title: "STIMscope"
-message: "If you use this software, please cite both the software (this repository) and the preprint listed under preferred-citation."
+message: "If you use this software, please cite both the software (this repository) and the preferred-citation."
 type: software
 authors:
   - given-names: "Hamid"
@@ -52,7 +51,6 @@ abstract: >
   synchronization. Distributed as a Docker image for NVIDIA Jetson
   alongside the accompanying CRISPI software pipeline.
 
-# Cite the preprint that describes the platform.
 preferred-citation:
   type: article
   title: "STIMscope: centimeter-scale all-optical imaging and patterned optogenetic manipulation at single-cell resolution"
