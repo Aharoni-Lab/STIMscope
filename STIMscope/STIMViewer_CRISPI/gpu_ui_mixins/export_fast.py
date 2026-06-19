@@ -304,13 +304,23 @@ class FastExportMixin:
 
     def _create_unified_export_file(self, export_data):
 
+        import os
         import time
         import json
         import numpy as np
 
 
         timestamp = time.strftime("%Y%m%d_%H%M%S")
-        unified_file = f"roi_complete_export_{timestamp}.npz"
+        # Organized, host-writable output: <STIM_SAVE_DIR>/exports/<TS>/ holds
+        # this export's .npz and its _summary.html companion together. Falls
+        # back to CWD only if the env var is unset (ad-hoc dev runs).
+        _base = os.environ.get("STIM_SAVE_DIR") or "."
+        export_dir = os.path.join(_base, "exports", timestamp)
+        try:
+            os.makedirs(export_dir, exist_ok=True)
+        except Exception:
+            export_dir = "."
+        unified_file = os.path.join(export_dir, f"roi_complete_export_{timestamp}.npz")
 
         try:
 
@@ -385,7 +395,7 @@ class FastExportMixin:
         except Exception as e:
             print(f"❌ Unified export creation failed: {e}")
 
-            fallback_file = f"roi_basic_export_{timestamp}.npz"
+            fallback_file = os.path.join(export_dir, f"roi_basic_export_{timestamp}.npz")
             np.savez_compressed(fallback_file,
                                traces=list(self.live_extractor.buffers.values()) if self.live_extractor else [],
                                roi_ids=list(self.live_extractor.buffers.keys()) if self.live_extractor else [],

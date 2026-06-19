@@ -93,7 +93,7 @@ class MaskOpsMixin:
 
     def _on_mask_pattern_changed(self, text: str):
         # Enable browse button only for patterns that need a path
-        need_path = text in ("Image", "Folder", "Custom")
+        need_path = text in ("Image", "Folder", "Custom", "Seg Mask")
         try:
             self._mask_pattern_browse.setEnabled(need_path)
         except Exception:
@@ -122,6 +122,13 @@ class MaskOpsMixin:
                 dirp = QFileDialog.getExistingDirectory(self, "Select Folder", default_dir)
                 if dirp:
                     self._mask_pattern_path = dirp
+            elif typ == "Seg Mask":
+                # Browse for a saved ROI/segmentation .npz to project. Defaults
+                # to STIM_SAVE_DIR (/data) where Offline Setup saves rois.npz.
+                fp, _ = QFileDialog.getOpenFileName(self, "Select ROI / segmentation NPZ", default_dir,
+                                                    "ROI archives (*.npz);;All files (*)")
+                if fp:
+                    self._mask_pattern_path = fp
             elif typ == "Custom":
                 # Allow selecting either a Python sender or a compiled custom sender (including no extension)
                 fp, _ = QFileDialog.getOpenFileName(self, "Select Sender (Python or Executable)", default_dir,
@@ -187,18 +194,32 @@ class MaskOpsMixin:
                 elif pat == "Seg Mask":
                     # Send latest segmentation labels/masks from rois.npz
                     try:
-                        # Search multiple locations for rois.npz
-                        _roi_candidates = [
+                        # Search multiple locations for rois.npz. STIM_SAVE_DIR
+                        # (/data) comes FIRST because that's where Offline Setup
+                        # and ROI discovery now save it; the legacy locations
+                        # remain as fallbacks for older saves.
+                        _save_dir = os.environ.get("STIM_SAVE_DIR")
+                        _roi_candidates = []
+                        if _save_dir:
+                            _roi_candidates.append(Path(_save_dir) / "rois.npz")
+                        _roi_candidates += [
+                            Path("/data") / "rois.npz",
                             Path.cwd() / "rois.npz",
                             Path(__file__).resolve().parent / "CS" / "data" / "rois.npz",
                             Path.cwd() / "data" / "rois.npz",
                             Path(__file__).resolve().parent / "rois.npz",
                         ]
+                        # Prefer an explicitly browsed .npz (Browse button with
+                        # the "Seg Mask" pattern selected) over the auto-search.
                         roi_path = None
-                        for _rp in _roi_candidates:
-                            if _rp.exists():
-                                roi_path = str(_rp.resolve())
-                                break
+                        _picked = getattr(self, "_mask_pattern_path", None)
+                        if _picked and str(_picked).lower().endswith(".npz") and Path(_picked).exists():
+                            roi_path = str(Path(_picked).resolve())
+                        if roi_path is None:
+                            for _rp in _roi_candidates:
+                                if _rp.exists():
+                                    roi_path = str(_rp.resolve())
+                                    break
                         if roi_path is None:
                             roi_path = str(_roi_candidates[0].resolve())
                             print("[MASK] WARNING: rois.npz not found in any known location")

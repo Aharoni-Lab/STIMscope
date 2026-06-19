@@ -923,11 +923,20 @@ class OfflineSetupDialogMixin:
                 if labels is None:
                     export_status.setText("No segmentation to save.")
                     return
-                default_dir = str(
-                    Path(__file__).resolve().parent
-                    / "CS"
-                    / "data"
+                # Default to the writable, host-mounted save dir (/data) so the
+                # dialog opens somewhere the container can actually write. The
+                # old default (CS/data, inside the source tree) is read-only in
+                # some launchers and root-owned; navigating into /host_home/* —
+                # which is mounted read-only — is what produced the
+                # "[Errno 30] Read-only file system" save error.
+                import os as _os
+                default_dir = _os.environ.get("STIM_SAVE_DIR") or str(
+                    Path(__file__).resolve().parent / "CS" / "data"
                 )
+                try:
+                    _os.makedirs(default_dir, exist_ok=True)
+                except Exception:
+                    pass
                 default_path = str(Path(default_dir) / "rois.npz")
                 fpath, _ = QFileDialog.getSaveFileName(
                     dlg,

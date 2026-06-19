@@ -10,6 +10,10 @@ services:
       - NVIDIA_DRIVER_CAPABILITIES=all
       - QT_X11_NO_MITSHM=1
       - GENICAM_GENTL64_PATH=/opt/ids-peak/lib/aarch64-linux-gnu/ids-peak/cti
+      # All artifacts (recordings, ROIs, trace exports) land in the writable,
+      # host-mounted /data tree instead of the read-only source/CWD.
+      - STIM_SAVE_DIR=/data
+      - STIM_DATA_ROOT=/data
     network_mode: host
     volumes:
       # X11 display socket — :rw required (read-only breaks PyQt5/OpenGL rendering)
@@ -36,7 +40,9 @@ services:
     runtime: nvidia
     privileged: true
     entrypoint: ["bash", "-c"]
-    command: ["cd /app/STIMViewer_CRISPI && python3 main_gui.pyw"]
+    # umask 0000 so root-created outputs in /data are deletable by the host
+    # user (this service bypasses entrypoint.sh, which sets the same umask).
+    command: ["umask 0000; mkdir -p /data; cd /app/STIMViewer_CRISPI && python3 main_gui.pyw"]
     environment:
       - DISPLAY=${DISPLAY:-:0}
       - NVIDIA_VISIBLE_DEVICES=all
@@ -44,6 +50,10 @@ services:
       - QT_X11_NO_MITSHM=1
       - PYTHONUNBUFFERED=1
       - GENICAM_GENTL64_PATH=/opt/ids-peak/lib/aarch64-linux-gnu/ids-peak/cti
+      # All artifacts (recordings, ROIs, trace exports) land in the writable,
+      # host-mounted /data tree instead of the read-only source/CWD.
+      - STIM_SAVE_DIR=/data
+      - STIM_DATA_ROOT=/data
     network_mode: host
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw

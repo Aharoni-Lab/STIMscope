@@ -1,5 +1,22 @@
 #!/bin/bash
 set -e
+
+# Make outputs deletable by the host user. The container runs as root
+# (hardware access — GPIO/USB/IDS camera — needs it), so every file it writes
+# into the bind-mounted /data would otherwise be root-owned and undeletable
+# on the host without sudo. A permissive umask makes root-created files/dirs
+# world-writable so the host user (a different UID) can manage/delete them.
+umask 0000
+
+# Designated writable output tree (bind-mounted from the host as /data).
+# Ensure it exists so first-run saves never fall back to the read-only/source
+# locations. STIM_SAVE_DIR / STIM_DATA_ROOT are set by the launchers.
+# chmod the mount root world-writable so the host user (a different UID) can
+# create/delete entries even if Docker auto-created /data as root:root. New
+# files/dirs below it inherit deletability from the umask above.
+mkdir -p "${STIM_SAVE_DIR:-/data}" 2>/dev/null || true
+chmod 0777 "${STIM_SAVE_DIR:-/data}" 2>/dev/null || true
+
 # Add CUDA libraries to path
 export LD_LIBRARY_PATH=/usr/local/cuda/lib64:/usr/local/cuda-${CUDA_VERSION}/lib64:${LD_LIBRARY_PATH:-}
 

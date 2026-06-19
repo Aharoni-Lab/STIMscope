@@ -478,7 +478,9 @@ def test_C30_unified_export_file_no_extractor(host, tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     export_data = {'export_info': {}, 'machine_snapshot': {}}
     fname = host._create_unified_export_file(export_data)
-    assert fname.startswith("roi_complete_export_")
+    # Exports now land in an organized <STIM_SAVE_DIR>/exports/<TS>/ dir, so the
+    # return value is a path; assert the filename via its basename.
+    assert Path(fname).name.startswith("roi_complete_export_")
     assert (tmp_path / fname).exists()
 
 
@@ -543,7 +545,7 @@ def test_C34_unified_export_file_savez_raises_fallback(host, tmp_path, monkeypat
     with patch("gpu_ui_mixins.export_fast.np.savez_compressed", side_effect=flaky_savez):
         fname = host._create_unified_export_file({'export_info': {}})
 
-    assert fname.startswith("roi_basic_export_")  # fallback name
+    assert Path(fname).name.startswith("roi_basic_export_")  # fallback name
     assert "Unified export creation failed" in capsys.readouterr().out
 
 

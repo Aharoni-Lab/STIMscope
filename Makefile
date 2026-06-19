@@ -27,6 +27,9 @@ fresh:
 	@echo ">>> make fresh: stopping old containers, then launching GUI"
 	-docker stop crispi-gui 2>/dev/null
 	-docker rm crispi-gui 2>/dev/null
+	@# Pre-create the data dir as the host user so Docker doesn't auto-create
+	@# it as root:root (which would make its contents undeletable on the host).
+	@mkdir -p $(CURDIR)/data
 	@# X11 setup: older `xhost +local:docker` silently no-ops
 	@# when DISPLAY is unset in make's shell. GDM 3.x stores the X auth
 	@# under /run/user/$$UID/gdm/Xauthority, NOT ~/.Xauthority. Authorize
@@ -49,10 +52,13 @@ fresh:
 		-e QT_X11_NO_MITSHM=1 \
 		-e PYTHONUNBUFFERED=1 \
 		-e GENICAM_GENTL64_PATH=/opt/ids-peak/lib/aarch64-linux-gnu/ids-peak/cti \
+		-e STIM_SAVE_DIR=/data \
+		-e STIM_DATA_ROOT=/data \
 		-v /tmp/.X11-unix:/tmp/.X11-unix:rw \
 		-v /tmp/docker.xauth:/tmp/docker.xauth:ro \
 		-v $(CURDIR)/STIMscope/STIMViewer_CRISPI:/app/STIMViewer_CRISPI \
 		-v $(CURDIR)/STIMscope/ZMQ_sender_mask:/app/ZMQ_sender_mask \
+		-v $(CURDIR)/entrypoint.sh:/app/entrypoint.sh:ro \
 		-v $(CURDIR)/data:/data \
 		-v $${HOME}:/host_home:ro \
 		-v /media:/host_media:ro \

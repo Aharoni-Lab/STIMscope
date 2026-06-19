@@ -332,10 +332,10 @@ class TestC2HelperPythonPathForMasks:
 
 class TestC3OnMaskPatternChanged:
     """Contract: enable Browse button only for patterns that need a path
-    (Image, Folder, Custom). Other patterns disable Browse.
+    (Image, Folder, Custom, Seg Mask). Other patterns disable Browse.
 
     Branches:
-    - Image / Folder / Custom → setEnabled(True)
+    - Image / Folder / Custom / Seg Mask → setEnabled(True)
     - Anything else → setEnabled(False)
     - setEnabled raises → swallowed
     """
@@ -349,7 +349,7 @@ class TestC3OnMaskPatternChanged:
         ("Solid", False),
         ("Circle", False),
         ("Gradient", False),
-        ("Seg Mask", False),
+        ("Seg Mask", True),
         ("", False),
         ("Unknown", False),
     ])

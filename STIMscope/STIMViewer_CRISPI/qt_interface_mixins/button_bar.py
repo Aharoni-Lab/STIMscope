@@ -210,6 +210,14 @@ class ButtonBarMixin:
         self._mask_pattern_browse.clicked.connect(self._browse_mask_pattern_path)
         self._mask_pattern_browse.setEnabled(False)
         self._mask_pattern_path = ""
+        # Initialize the Browse-enabled state for the DEFAULT-selected pattern.
+        # currentTextChanged only fires on a change, so without this the default
+        # "Seg Mask" item would leave Browse greyed-out until you switch the
+        # dropdown away and back.
+        try:
+            self._on_mask_pattern_changed(self._mask_pattern_dropdown.currentText())
+        except Exception:
+            pass
         self._button_send_triggers = QtWidgets.QPushButton("Start Projector Trigger")
         self._button_send_triggers.clicked.connect(self._toggle_send_triggers)
         self._stim_mode_label = QtWidgets.QLabel("Projection Mode")

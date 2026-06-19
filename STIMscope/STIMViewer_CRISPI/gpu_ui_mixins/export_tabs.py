@@ -552,10 +552,30 @@ class ExportViewerTabsMixin:
             tab_widget.addTab(error_widget, "❌ Plot Preview")
 
     def _open_html_in_browser(self, html_file):
-       
+        import os as _os
+        import shutil as _shutil
+        path = _os.path.abspath(html_file)
+        # Inside the Docker container there is no web browser installed, and a
+        # bare webbrowser.open() either raises or HANGS the Qt thread waiting on
+        # a headless subprocess. Only launch a browser if one actually exists;
+        # otherwise point the operator at the saved file + the in-app
+        # "Visual Summary" tab (QWebEngineView) instead of launching anything.
+        _browsers = ("xdg-open", "x-www-browser", "firefox", "chromium",
+                     "chromium-browser", "google-chrome", "google-chrome-stable")
+        if not any(_shutil.which(b) for b in _browsers):
+            try:
+                from PyQt5.QtWidgets import QMessageBox
+                QMessageBox.information(
+                    self, "Report saved",
+                    "No web browser is available in this environment.\n\n"
+                    f"The HTML report is saved at:\n{path}\n\n"
+                    "Open the 'Visual Summary' tab to view it in-app.")
+            except Exception:
+                print(f"ℹ️ HTML report saved at: {path} (no browser available)")
+            return
         try:
             import webbrowser
-            webbrowser.open(f'file://{os.path.abspath(html_file)}')
+            webbrowser.open(f'file://{path}')
         except Exception as e:
             print(f"❌ Browser open error: {e}")
 
