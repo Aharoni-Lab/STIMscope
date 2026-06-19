@@ -1,12 +1,12 @@
 # STIMscope — Implementation Notes
 
-![Fig 4a — CRISPI software architecture (preprint)](figures/fig04a_software_architecture.png)
+![Fig 4a — CRISPI software architecture](figures/fig04a_software_architecture.png)
 *Fig 4a — Six-module CRISPI software architecture. The
 **Initialization**, **Calibration**, **Central Real-Time**, **Real-Time
 Trace Extraction**, and **Visualization Dashboard** modules are
 implemented in this release. The **Inference Module** (Feature
 Extraction → Adaptive Mask Generation + Local Memory) is **scaffolded
-but not implemented in this version** (preprint Discussion). All
+but not implemented in this version**. All
 inter-module flow is over ZeroMQ.*
 
 This document describes the current implementation of the platform.
@@ -21,7 +21,7 @@ This release ships the **interactive Qt GUI** (the operator
 path) and the **C++ projector engine** (the renderer the GUI drives). The
 inference module that would close the loop on activity-dependent stimulation
 is **scaffolded but not implemented in this version** — this matches the
-preprint's explicit statement (Discussion):
+explicit statement:
 
 > "While CRISPI provides a hardware-synchronized framework for online trace
 > extraction and calibrated mask delivery, the inference module that would
@@ -47,8 +47,8 @@ The `CS/` directory name is a historical artifact from an earlier
 in-tree experiment; the directory was not renamed because the four
 active files above are imported from many call sites in the GUI.
 
-Closed-loop inference is the preprint's future-work extension point
-(see preprint *Discussion*) and is not implemented in this release.
+Closed-loop inference is the future-work extension point
+and is not implemented in this release.
 
 ### Qt GUI (`STIMscope/STIMViewer_CRISPI/`)
 
@@ -131,7 +131,7 @@ you move things around.
 | Mask projection (GUI mgmt) | `qt_interface_mixins/mask_ops.py`, `projection_controls.py` | — |
 | Live trace extraction (RTTE) | `live_trace/extractor.py` (~706 LOC) + 8 mixins under `live_trace/` (`ingest.py`, `processing.py`, `perf.py`, `plot_pagination.py`, `plot_aggregation.py`, `plot_modes.py`, `plot_layouts.py`, `init.py`) | — |
 | GPU UI window (trace plots) | `gpu_ui.py` + mixins under `gpu_ui_mixins/` (`export_fast.py`, `export_slow.py`, `export_tabs.py`, `export_viewer.py`, `health.py`, `napari.py` (planned removal), `roi_discovery.py`, `traces.py`) | — |
-| Inference module hook (preprint future-work; not implemented in this release) | `qt_interface_mixins/cs_pipeline_dialog.py` (UI hook only) | — |
+| Inference module hook (future-work; not implemented in this release) | `qt_interface_mixins/cs_pipeline_dialog.py` (UI hook only) | — |
 | Trace test sub-window | `qt_interface_mixins/trace_test.py` + `STIMViewer_CRISPI/test_trace_fidelity.py` (CLI) | — |
 | Troubleshoot menu | `qt_interface_mixins/troubleshoot.py` (~1,463 LOC) | — |
 | Pixel probe / overlay | `qt_interface_mixins/overlay_probe.py` | — |
@@ -172,22 +172,21 @@ GPIO, and the DMD are present.
 NVIDIA Jetson Orin synchronization fabric. The MCU clocks every camera
 exposure (Trig-Out 1 / 2 to camera + DMD); the host configures the
 DMD over I²C and streams patterns over HDMI; the host talks to the MCU
-over UART. Preprint Methods § Synchronization.*
+over UART.*
 
 - **Camera.** Sony **IMX334** / **IMX290** small-pixel back-illuminated
   CMOS in an IDS Peak USB3 housing. SDK at `/opt/ids-peak`
   (bind-mounted into the container). Python bindings: `ids_peak`,
   `ids_peak_ipl`, `ids_peak_afl`. Setup is fully fallback-tolerant —
-  if the SDK isn't installed the simulation path still works. (Preprint
-  Methods § Camera; Fig 1b.)
+  if the SDK isn't installed the simulation path still works. (Fig 1b.)
 - **Projector.** TI **DLP4710** DMD via **DLPC3479** controller. Driven
   by the C++ engine over HDMI + OpenGL; configured over I²C (addr
   `0x1B`) by `dlpc_i2c.py`. Per-pattern trigger out via `libgpiod`.
-  (Preprint Methods § DMD; Fig 1b.)
+  (Fig 1b.)
 - **Microcontroller.** Microchip **ATSAMD51** (Adafruit Grand Central
   M4); the slave-trigger source for camera exposures and DMD pattern
   advances. UART to host at 9600 bps (`[0x02][mode][len][data]` packet
-  framing). (Preprint Methods § Microcontroller.)
+  framing).
 - **Illumination.** DMD-internal. RED / BLUE channel selection happens
   inside the DLPC3479 per pattern via I²C opcode `0x96` byte 3
   (Illumination Select). There are no separate per-LED GPIO pins on
@@ -205,6 +204,6 @@ over UART. Preprint Methods § Synchronization.*
 ## Attribution
 
 The STIMscope hardware platform is © Aharoni Lab, UCLA (GPL-3.0).
-The platform is described in detail in the STIMscope preprint (see
+The platform is described in detail (see
 [CITATION.cff](../CITATION.cff)).
 

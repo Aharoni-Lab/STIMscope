@@ -50,17 +50,17 @@ in the wiki for the full feature catalog.
 ## Hardware
 
 The platform composes off-the-shelf parts into a bill of materials
-under USD $5,000 (preprint *Abstract*, *Discussion*). Synchronization
+under USD $5,000. Synchronization
 between the image sensor, DMD projector, microcontroller, and Jetson
-follows the architecture in Fig 1b of the preprint.
+follows the architecture in Fig 1b.
 
-| Component | What we use | Preprint reference |
+| Component | What we use | Reference |
 |---|---|---|
-| Compute | NVIDIA Jetson AGX Orin (JetPack 5/L4T R35.x or JetPack 6/L4T R36.x) | Methods § Image processing pipeline |
-| Camera | Sony **IMX334** / **IMX290** small-pixel back-illuminated CMOS in an IDS Peak USB3 housing (MIPI / generic-camera paths also supported) | Methods § Camera; Fig 1b |
-| Projector | TI **DLP4710** DMD driven by **DLPC3479** controller (I²C) | Methods § DMD; Fig 1b |
-| Microcontroller | Microchip **ATSAMD51** (Adafruit Grand Central M4) | Methods § Microcontroller; Fig 1b |
-| Sync | `libgpiod` — gpiochip + line numbers env-configurable (`STIM_GPIO_CHIP`, `STIM_CAM_LINE`, `STIM_PROJ_LINE`) | Methods § Synchronization |
+| Compute | NVIDIA Jetson AGX Orin (JetPack 5/L4T R35.x or JetPack 6/L4T R36.x) |  |
+| Camera | Sony **IMX334** / **IMX290** small-pixel back-illuminated CMOS in an IDS Peak USB3 housing (MIPI / generic-camera paths also supported) | Fig 1b |
+| Projector | TI **DLP4710** DMD driven by **DLPC3479** controller (I²C) | Fig 1b |
+| Microcontroller | Microchip **ATSAMD51** (Adafruit Grand Central M4) | Fig 1b |
+| Sync | `libgpiod` — gpiochip + line numbers env-configurable (`STIM_GPIO_CHIP`, `STIM_CAM_LINE`, `STIM_PROJ_LINE`) |  |
 
 The platform falls back to simulation-friendly modes (no camera, no
 projector) when hardware is absent — see
@@ -88,9 +88,9 @@ read at startup — no rebuild required to retarget a different Jetson
 or carrier board. See [docs/PORTABILITY.md](docs/PORTABILITY.md) for
 the full env-var surface and a sanity-check on a fresh machine.
 
-## Performance characterization (from the preprint)
+## Performance characterization
 
-| Metric | Value | Preprint reference |
+| Metric | Value | Reference |
 |---|---|---|
 | Trigger-to-photodiode latency (mask → light) | **26.3 ms** (mean) | Fig 4e; 5,000-mask photodiode run |
 | End-to-end closed-loop latency (project + capture + ROI extract) | **91.6 ms** | Fig 4f |
@@ -100,7 +100,7 @@ the full env-var surface and a sanity-check on a fresh machine.
 | Field of view (demagnified) | **14 × 11 mm²** | Fig 1f, Fig 3a |
 
 The closed-loop end-to-end latency in Fig 4f explicitly **excludes** an
-inference model (preprint *Discussion*) — see [docs/IMPLEMENTATION_NOTES.md](docs/IMPLEMENTATION_NOTES.md)
+inference model — see [docs/IMPLEMENTATION_NOTES.md](docs/IMPLEMENTATION_NOTES.md)
 for the scope and implementation status of the platform.
 
 ## Cite
@@ -108,7 +108,7 @@ for the scope and implementation status of the platform.
 If you use STIMscope in research, see [CITATION.cff](CITATION.cff)
 (GitHub renders a "Cite this repository" button from it). The
 [NOTICE](NOTICE) file preserves upstream attribution. Figures
-reproduced in this repository are subject to the preprint's
+reproduced in this repository are subject to the
 [CC BY-NC-ND 4.0](docs/figures/LICENSE-FIGURES.md) license,
 independently of this repository's software license.
 

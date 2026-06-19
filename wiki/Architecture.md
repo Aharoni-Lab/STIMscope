@@ -11,8 +11,8 @@ analysis, all coordinated from a Qt GUI on NVIDIA Jetson.
 (image registration + structured-light), **Central Real-Time**
 (imaging/stimulation metadata, ZeroMQ hub, frame monitor, projection
 engine), **Inference** (feature extraction → adaptive mask generation +
-local memory — preprint's future closed-loop extension point, scaffolded
-but not implemented in this release; see preprint Discussion),
+local memory — future closed-loop extension point, scaffolded
+but not implemented in this release),
 **Real-Time Trace Extraction** (denoising, deconvolution), and the
 **Visualization Dashboard** (GUI interface + live plotting). All
 inter-module data flow is over ZeroMQ (PUSH/PULL, REQ/REP, PUB/SUB).*
@@ -27,13 +27,13 @@ on disk. For the file-by-file map, see
 
 ## Conceptual architecture
 
-The platform is organized as the six modules above (preprint Fig 4a),
+The platform is organized as the six modules above (Fig 4a),
 communicating over ZeroMQ. Each module is independent; the wiring
 lets them be combined for closed-loop experiments or used standalone
 for, e.g., offline segmentation alone. In this release
 the **Inference Module** is scaffolded only — the wire and interfaces
-exist, but the inference algorithms themselves are the preprint's
-future-work extension point (preprint *Discussion* — "not implemented
+exist, but the inference algorithms themselves are the
+future-work extension point ("not implemented
 in the current version").
 
 ### Module responsibilities

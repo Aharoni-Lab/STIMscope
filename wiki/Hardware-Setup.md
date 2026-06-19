@@ -19,18 +19,18 @@ in real time.*
 
 ## What you need
 
-The bill-of-materials goal in the preprint is **< USD $5,000** using
-off-the-shelf parts (preprint *Abstract*, *Discussion*).
+The bill-of-materials goal is **< USD $5,000** using
+off-the-shelf parts.
 
-| Component | What we use | Preprint reference |
+| Component | What we use | Reference |
 |---|---|---|
-| Compute | NVIDIA Jetson AGX Orin (JetPack 5 or 6) | Methods § Image processing; Fig 1b |
-| Camera | Sony **IMX334** / **IMX290** small-pixel back-illuminated CMOS in an IDS Peak USB3 housing (2 µm pitch, slave-triggered) | Methods § Camera; Fig 1b |
-| Stimulator | TI **DLP4710** DMD driven by **DLPC3479** controller (I²C, addr 0x1B) | Methods § DMD; Fig 1b |
-| Microcontroller | Microchip **ATSAMD51** (Adafruit Grand Central M4) — clocks every camera exposure | Methods § Microcontroller; Fig 1b |
-| Trigger / control | GPIO via `libgpiod` — gpiochip + line numbers env-configurable | Methods § Synchronization; Fig 1b |
-| Optics (lens train) | Large-aperture dual-tandem lenses, optimal f/4, Nikon F-mount | Methods § Optical design; Fig 1c |
-| Dichroic | Custom dual-band (Union Optic, 50 mm) | Methods § Optical design |
+| Compute | NVIDIA Jetson AGX Orin (JetPack 5 or 6) | Fig 1b |
+| Camera | Sony **IMX334** / **IMX290** small-pixel back-illuminated CMOS in an IDS Peak USB3 housing (2 µm pitch, slave-triggered) | Fig 1b |
+| Stimulator | TI **DLP4710** DMD driven by **DLPC3479** controller (I²C, addr 0x1B) | Fig 1b |
+| Microcontroller | Microchip **ATSAMD51** (Adafruit Grand Central M4) — clocks every camera exposure | Fig 1b |
+| Trigger / control | GPIO via `libgpiod` — gpiochip + line numbers env-configurable | Fig 1b |
+| Optics (lens train) | Large-aperture dual-tandem lenses, optimal f/4, Nikon F-mount | Fig 1c |
+| Dichroic | Custom dual-band (Union Optic, 50 mm) |  |
 
 The exact part numbers / camera model / projector / lens train depend
 on your optical setup. The software side described here is fixed.
@@ -147,7 +147,7 @@ See [Portability](Portability) for the full env-var surface.
 mask (left), the warped projected pattern after applying the
 camera→projector homography H (middle), and the overlay seen by the
 camera (right). Reported targeting accuracy is RMS **0.46 px ≈ 1.3 µm**
-across ~85 000 targets on a 1936 × 1096 field (preprint Fig 4c).*
+across ~85 000 targets on a 1936 × 1096 field (Fig 4c).*
 
 Calibration is fully autonomous from the GUI — the operator does
 **not** place a physical board anywhere in the optical path. The DMD

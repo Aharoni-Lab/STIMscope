@@ -8,8 +8,8 @@
 # Catch-all — owner reviews any change that no later rule overrides.
 *                               @wimaan3
 
-# Core utilities + scaffolding for the preprint's future closed-loop
-# inference extension point (preprint Discussion).
+# Core utilities + scaffolding for the future closed-loop
+# inference extension point.
 /STIMscope/STIMViewer_CRISPI/CS/core/                                @wimaan3
 
 # CI / build / release tooling.

@@ -4,8 +4,7 @@
 *Fig 1b — The protocol surfaces this page documents, top to
 bottom: image sensor → host over USB / MIPI-CSI; host ↔ MCU over UART;
 host → DMD over HDMI (pattern stream) and I²C (control); MCU → DMD +
-camera over Trig-Out 1 / 2 (synchronization). Preprint Methods §
-Synchronization.*
+camera over Trig-Out 1 / 2 (synchronization).*
 
 This page documents the **protocol layer** between the software and
 the hardware: how Python talks to the camera, how Python and the C++

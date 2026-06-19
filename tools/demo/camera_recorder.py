@@ -8,7 +8,7 @@ Captures the IDS Peak camera and writes three artifacts in lockstep:
                                        and (in slave mode) the IDS buffer's
                                        hardware timestamp (hw_ts_ns)
 
-CAPTURE MODES — match how STIMscope is supposed to operate per the preprint
+CAPTURE MODES — match how STIMscope is supposed to operate
 (Trig out 1/2 from the DMD → MCU → image sensor sync lines, sensor in
 slave mode integrating over a single coherent pattern presentation):
 
@@ -27,8 +27,7 @@ slave mode integrating over a single coherent pattern presentation):
   freerun (--freerun, development only)
     TriggerMode = Off, AcquisitionFrameRate set explicitly. Sensor
     samples on its own clock, NOT phase-locked to the DMD. Use this
-    for camera-only smoke tests; do NOT use for demo recordings the
-    preprint relies on.
+    for camera-only smoke tests; do NOT use for demo recordings.
 
 Reference implementation: STIMscope/STIMViewer_CRISPI/camera.py:862–887
 (_select_trigger). This file mirrors that pattern.
@@ -137,7 +136,7 @@ def main(argv=None):
         # ── Trigger configuration ──────────────────────────────────────────
         # Default: slave mode (publication-grade). DMD's Trig out 1/2 → MCU → image
         # sensor sync line → camera ExposureStart fires once per projected
-        # pattern. This is the operating mode the STIMscope preprint relies on.
+        # pattern. This is the operating mode.
         #
         # Pattern mirrors STIMscope/STIMViewer_CRISPI/camera.py:862–887
         # (_select_trigger). Each step is in its own try/except so a missing

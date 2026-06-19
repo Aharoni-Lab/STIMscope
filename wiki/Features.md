@@ -12,8 +12,7 @@ see [GUI Reference](GUI-Reference). For the architectural overview, see
 *Fig 1c — Optical layout: dual-tandem lens train. Imaging side
 demagnifies (M = f₂/f₁), excitation side relays the DMD's patterned
 illumination (M = f₁/f₃) through a custom dual-band dichroic onto the
-sample. Optimal f-number f/4, Nikon F-mount. Preprint Methods § Optical
-design.*
+sample. Optimal f-number f/4, Nikon F-mount.*
 
 ---
 
@@ -206,7 +205,7 @@ the protocol-layer view.
 camera-space mask (a 1 mm grid). Middle: the projected DMD pattern
 after applying the camera→projector homography H. Right: the camera
 observation of the projected pattern overlaid on the requested mask.
-Targeting accuracy reported in the preprint is **RMS 0.46 px ≈ 1.3 µm**
+Targeting accuracy is **RMS 0.46 px ≈ 1.3 µm**
 across ~85 000 targets on a 1936 × 1096 field (Fig 4c).*
 
 Calibration on this platform is **autonomous DMD→camera** — the GUI
