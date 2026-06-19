@@ -30,7 +30,6 @@ global.log
 # Environment
 .env
 *.env
-improvenv/
 
 # Backup files
 *.bak

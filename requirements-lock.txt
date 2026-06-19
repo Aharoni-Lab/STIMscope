@@ -80,7 +80,6 @@ ids-peak-ipl==1.17.1.0.6
 ids-peak==1.14.0.0.7
 imagecodecs==2025.3.30
 importlib_metadata==9.0.0
-improv==0.0.1
 in-n-out==0.2.1
 ipykernel==6.31.0
 ipython==8.39.0
