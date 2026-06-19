@@ -7,7 +7,14 @@ name: Publish Docker image
 #   - push: tags: [v*]   : automatic publish on a release tag (e.g. v1.0.0).
 #                          Recommend tagging the merge commit you want to ship,
 #                          NOT every commit on main — image builds are slow
-#                          (~30 min) and the image is large (~12 GB).
+#                          (~30 min each) and the images are large (~12 GB).
+#
+# Publishes TWO separate packages, one per JetPack — each device pulls the one
+# matching its L4T release:
+#   - ghcr.io/aharoni-lab/stimscope-jp5  (JetPack 5 / L4T R35.x / CUDA 11.4)
+#   - ghcr.io/aharoni-lab/stimscope-jp6  (JetPack 6 / L4T R36.x / CUDA 12.2)
+# A single image CANNOT serve both: the container's CUDA runtime is bound to the
+# host L4T GPU driver at runtime, and CUDA 11.4 (JP5) and 12.2 (JP6) do not cross.
 on:
   workflow_dispatch:
     inputs:
@@ -28,11 +35,26 @@ permissions:
 
 jobs:
   publish:
-    name: Build + push to ghcr.io
+    name: Build + push ${{ matrix.jetpack }} to ghcr.io
     # Free ARM64 runner — matches the Jetson target architecture (aarch64).
     # Only available on public repos. 4 cores / 16 GB RAM / 14 GB disk.
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 60
+    # One parallel job per JetPack → one published package each. fail-fast off so
+    # a JP6 failure doesn't cancel a good JP5 publish (and vice versa). The
+    # build-arg triples mirror build.sh's auto-detect branches exactly.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - jetpack: jp5
+            l4t_jetpack_version: r35.2.1
+            cuda_version: "11.4"
+            cupy_package: cupy-cuda11x
+          - jetpack: jp6
+            l4t_jetpack_version: r36.2.0
+            cuda_version: "12.2"
+            cupy_package: cupy-cuda12x
 
     steps:
       - name: Checkout
@@ -64,16 +86,19 @@ jobs:
         id: tags
         run: |
           SHA7=$(echo "${{ github.sha }}" | cut -c1-7)
-          # Always tag :latest + :sha-<7-char>. Optionally an extra user-supplied tag.
-          TAGS="ghcr.io/aharoni-lab/stimscope:latest
-          ghcr.io/aharoni-lab/stimscope:sha-${SHA7}"
+          # Per-JetPack package — the package name (…-jp5 / …-jp6) encodes the
+          # JetPack, so each package's :latest is unambiguous. Plus an immutable
+          # :sha-<7> pin. Optionally an extra user-supplied / release tag.
+          IMAGE="ghcr.io/aharoni-lab/stimscope-${{ matrix.jetpack }}"
+          TAGS="${IMAGE}:latest
+          ${IMAGE}:sha-${SHA7}"
           if [ -n "${{ inputs.tag }}" ]; then
             TAGS="${TAGS}
-          ghcr.io/aharoni-lab/stimscope:${{ inputs.tag }}"
+          ${IMAGE}:${{ inputs.tag }}"
           fi
           if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
             TAGS="${TAGS}
-          ghcr.io/aharoni-lab/stimscope:${{ github.ref_name }}"
+          ${IMAGE}:${{ github.ref_name }}"
           fi
           {
             echo "tags<<EOF"
@@ -87,17 +112,25 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
+          # JetPack toolchain comes from the matrix — CI runs on a cloud ARM
+          # runner and cannot auto-detect a target board the way build.sh does
+          # locally. Without these the Dockerfile defaults to JP6.
+          build-args: |
+            L4T_JETPACK_VERSION=${{ matrix.l4t_jetpack_version }}
+            CUDA_VERSION=${{ matrix.cuda_version }}
+            CUPY_PACKAGE=${{ matrix.cupy_package }}
+            GIT_SHA=${{ github.sha }}
           tags: ${{ steps.tags.outputs.tags }}
           # OCI annotations the docs recommend — these auto-link the package
           # to the repo (so it shows up in the repo sidebar + inherits the
           # repo's access controls).
           labels: |
             org.opencontainers.image.source=https://github.com/Aharoni-Lab/STIMscope
-            org.opencontainers.image.description=STIMscope / CRISPI base platform — open-source platform for centimeter-scale calcium imaging and DMD-patterned optogenetic stimulation on NVIDIA Jetson
+            org.opencontainers.image.description=STIMscope / CRISPI base platform (${{ matrix.jetpack }}) — open-source platform for centimeter-scale calcium imaging and DMD-patterned optogenetic stimulation on NVIDIA Jetson
             org.opencontainers.image.licenses=GPL-3.0
             org.opencontainers.image.revision=${{ github.sha }}
           # Cache build layers across runs to speed up subsequent builds.
-          # First run rebuilds from scratch (~30 min); subsequent runs that
-          # touch only a few layers complete in a fraction of that.
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # Scope per-JetPack so the two matrix builds don't clobber each
+          # other's cache (they share almost no layers below the base image).
+          cache-from: type=gha,scope=${{ matrix.jetpack }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.jetpack }}
