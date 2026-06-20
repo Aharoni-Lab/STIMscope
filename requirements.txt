@@ -7,7 +7,7 @@ opencv-python-headless~=4.8
 Pillow>=12.2,<13.0   #  closes CVE-2026-25990/-40192/-42308/-42310/-42311 (was ~=10.0 → 10.4.0)
 psutil~=5.9
 pygame~=2.5
-pynvml~=12.0
+pynvml~=13.0
 pyqtgraph~=0.13
 pyzmq~=25.0
 scipy~=1.11
