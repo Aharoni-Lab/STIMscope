@@ -78,7 +78,7 @@ ids-peak-afl==2.0.1.0.4
 ids-peak-common==1.2.0.3597
 ids-peak-ipl==1.17.1.0.6
 ids-peak==1.14.0.0.7
-imagecodecs==2025.3.30
+imagecodecs==2026.6.6
 importlib_metadata==9.0.0
 in-n-out==0.2.1
 ipykernel==6.31.0

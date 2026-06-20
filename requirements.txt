@@ -12,7 +12,7 @@ pyqtgraph~=0.13
 pyzmq~=25.0
 scipy~=1.11
 tifffile
-imagecodecs==2025.3.30
+imagecodecs==2026.6.6
 Jetson.GPIO
 
 # Defense-in-depth floors for vulnerable transitive deps (none of these
