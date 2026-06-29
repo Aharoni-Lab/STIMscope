@@ -1,16 +1,16 @@
 magicgui~=0.10
-matplotlib~=3.8
-napari~=0.5
+matplotlib~=3.11
+napari~=0.7
 numpy~=1.24
 nvidia-ml-py~=12.0
-opencv-python-headless~=4.8
+opencv-python-headless~=4.13
 Pillow>=12.2,<13.0   #  closes CVE-2026-25990/-40192/-42308/-42310/-42311 (was ~=10.0 → 10.4.0)
 psutil~=5.9
 pygame~=2.5
 pynvml~=12.0
 pyqtgraph~=0.13
 pyzmq~=25.0
-scipy~=1.11
+scipy~=1.18
 tifffile
 imagecodecs==2025.3.30
 Jetson.GPIO
@@ -20,5 +20,5 @@ Jetson.GPIO
 # clients). Pinning floors here so any pip-resolver regeneration of
 # requirements-lock.txt picks the safe versions.
 urllib3>=2.7.0          # closes GHSA-mf9v-mfxr-j63j + GHSA-qccp-gfcp-xxvc
-requests>=2.33.0        # closes GHSA-gc5v-m9x4-r6x2
-idna>=3.15              # closes GHSA-65pc-fj4g-8rjx
+requests>=2.34.2        # closes GHSA-gc5v-m9x4-r6x2
+idna>=3.18              # closes GHSA-65pc-fj4g-8rjx
